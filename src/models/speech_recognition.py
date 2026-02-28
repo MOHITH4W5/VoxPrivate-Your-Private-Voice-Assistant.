@@ -1,10 +1,10 @@
 """
 src/models/speech_recognition.py
 Offline Speech-to-Text using faster-whisper (local, no cloud).
+Accepts float32 numpy arrays from AudioCapture (sounddevice-based).
 """
 
 import numpy as np
-from src.audio.processing import pcm_to_float, trim_silence
 
 
 class SpeechRecognizer:
@@ -39,20 +39,28 @@ class SpeechRecognizer:
                 "faster-whisper is not installed. Run: pip install faster-whisper"
             )
 
-    def transcribe(self, audio_bytes: bytes) -> str:
+    def transcribe(self, audio: np.ndarray) -> str:
         """
-        Transcribe raw PCM audio bytes to text.
+        Transcribe a float32 numpy audio array to text.
         Returns an empty string if no speech is detected.
         """
         self._load_model()
-        audio_float = pcm_to_float(audio_bytes)
-        audio_float = trim_silence(audio_float)
 
-        if len(audio_float) < 1000:
+        # Ensure float32 in [-1, 1]
+        if audio.dtype != np.float32:
+            audio = audio.astype(np.float32)
+
+        # Trim leading/trailing silence
+        non_silent = np.where(np.abs(audio) > 0.01)[0]
+        if len(non_silent) == 0:
+            return ""
+        audio = audio[non_silent[0]: non_silent[-1] + 1]
+
+        if len(audio) < 1000:
             return ""  # Too short to be meaningful speech
 
-        segments, info = self._model.transcribe(
-            audio_float,
+        segments, _info = self._model.transcribe(
+            audio,
             language=self.language,
             beam_size=5,
             vad_filter=True,

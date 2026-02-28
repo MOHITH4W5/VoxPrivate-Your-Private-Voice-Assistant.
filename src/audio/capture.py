@@ -1,23 +1,20 @@
 """
 src/audio/capture.py
-Real-time microphone audio capture with Voice Activity Detection.
+Real-time microphone audio capture using sounddevice (no C++ Build Tools needed).
+Uses energy-based Voice Activity Detection to produce clean audio segments.
 """
 
-import pyaudio
+import sounddevice as sd
 import numpy as np
 import threading
 import queue
-import time
 
 
 class AudioCapture:
     """
-    Captures microphone audio in real-time.
+    Captures microphone audio in real-time using sounddevice.
     Uses energy-based VAD to detect speech and produce audio segments.
     """
-
-    FORMAT = pyaudio.paInt16
-    CHANNELS = 1
 
     def __init__(self, config):
         self.sample_rate: int = config.get("audio", "sample_rate", default=16000)
@@ -25,61 +22,54 @@ class AudioCapture:
         self.silence_threshold: int = config.get("audio", "silence_threshold", default=500)
         self.silence_duration: float = config.get("audio", "silence_duration", default=1.5)
 
-        self._pa = pyaudio.PyAudio()
-        self._stream = None
         self._running = False
         self._thread = None
         self._audio_queue: queue.Queue = queue.Queue()
 
-        # Amplitude callback for GUI waveform
+        # Amplitude callback for GUI waveform visualisation
         self.amplitude_callback = None
 
-    def _is_speech(self, data: bytes) -> bool:
+    def _is_speech(self, data: np.ndarray) -> bool:
         """Simple energy-based voice activity detection."""
-        audio_array = np.frombuffer(data, dtype=np.int16)
-        energy = np.abs(audio_array).mean()
+        # data is float32 in [-1, 1]; convert to int16-equivalent energy
+        energy = int(np.abs(data).mean() * 32768)
         if self.amplitude_callback:
-            self.amplitude_callback(int(energy))
+            self.amplitude_callback(energy)
         return energy > self.silence_threshold
 
     def _capture_loop(self):
-        """Background thread: captures audio segments separated by silence."""
-        stream = self._pa.open(
-            format=self.FORMAT,
-            channels=self.CHANNELS,
-            rate=self.sample_rate,
-            input=True,
-            frames_per_buffer=self.chunk_size,
-        )
-
+        """Background thread: accumulates audio and emits complete utterances."""
         buffer = []
         silent_chunks = 0
         speaking = False
         chunks_per_second = self.sample_rate / self.chunk_size
         silence_chunks_needed = int(self.silence_duration * chunks_per_second)
 
-        try:
+        with sd.InputStream(
+            samplerate=self.sample_rate,
+            channels=1,
+            dtype="float32",
+            blocksize=self.chunk_size,
+        ) as stream:
             while self._running:
-                data = stream.read(self.chunk_size, exception_on_overflow=False)
-                is_speech = self._is_speech(data)
+                data, _ = stream.read(self.chunk_size)
+                data_flat = data[:, 0]  # mono
+                is_speech = self._is_speech(data_flat)
 
                 if is_speech:
-                    buffer.append(data)
+                    buffer.append(data_flat.copy())
                     silent_chunks = 0
                     speaking = True
                 elif speaking:
-                    buffer.append(data)
+                    buffer.append(data_flat.copy())
                     silent_chunks += 1
                     if silent_chunks >= silence_chunks_needed:
-                        # End of utterance — send to queue
-                        audio_bytes = b"".join(buffer)
-                        self._audio_queue.put(audio_bytes)
+                        # End of utterance — concatenate and enqueue as float32
+                        audio_array = np.concatenate(buffer)
+                        self._audio_queue.put(audio_array)
                         buffer = []
                         silent_chunks = 0
                         speaking = False
-        finally:
-            stream.stop_stream()
-            stream.close()
 
     def start(self):
         """Start the capture thread."""
@@ -98,7 +88,7 @@ class AudioCapture:
     def get_audio(self, timeout: float = 0.1):
         """
         Get next audio segment from queue.
-        Returns raw PCM bytes or None if nothing available.
+        Returns a float32 numpy array or None if nothing available.
         """
         try:
             return self._audio_queue.get(timeout=timeout)
@@ -112,8 +102,3 @@ class AudioCapture:
                 self._audio_queue.get_nowait()
             except queue.Empty:
                 break
-
-    def __del__(self):
-        self.stop()
-        if self._pa:
-            self._pa.terminate()

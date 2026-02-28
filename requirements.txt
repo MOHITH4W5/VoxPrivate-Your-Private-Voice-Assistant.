@@ -1,5 +1,6 @@
 faster-whisper>=0.10.0
-pyaudio>=0.2.13
+sounddevice>=0.4.6
+soundfile>=0.12.1
 pyttsx3>=2.90
 PyYAML>=6.0
 pyautogui>=0.9.54
