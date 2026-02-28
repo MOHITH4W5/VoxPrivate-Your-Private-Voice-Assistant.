@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+venv/
+.venv/
+env/
+.env/
+
+# Models (large binary files — download on first run)
+models/*.pt
+models/*.bin
+models/*.gguf
+models/*.pkl
+
+# IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# System
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs & screenshots (generated at runtime)
+*.log
+screenshot_*.png
+
+# Config overrides (keep config.yaml but not local secrets)
+config.local.yaml
+
+# Testing
+.pytest_cache/
+htmlcov/
+.coverage

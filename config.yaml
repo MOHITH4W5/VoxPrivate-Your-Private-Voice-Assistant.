@@ -1,0 +1,26 @@
+audio:
+  sample_rate: 16000
+  chunk_size: 1024
+  channels: 1
+  silence_threshold: 500      # amplitude threshold for VAD
+  silence_duration: 1.5       # seconds of silence to stop recording
+
+model:
+  speech_recognition: "tiny"  # faster-whisper model size: tiny, base, small
+  language: "en"
+  gpu_acceleration: false     # set to true if you have CUDA
+
+tts:
+  rate: 175                   # words per minute
+  volume: 1.0
+  voice_id: 0                 # 0 = first available voice
+
+hotkey: "ctrl+alt+v"          # global hotkey to toggle listening
+
+logging:
+  enabled: false
+  verbose: false
+
+commands:
+  custom:                     # add your own keyword -> action mappings
+    # "play spotify": "start spotify"
