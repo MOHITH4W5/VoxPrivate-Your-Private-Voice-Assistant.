@@ -1,4 +1,4 @@
-# 🎙️ VoxPrivate: Your Private Voice Assistant
+# 🎙️ C.A.L.V.I.N — Conversational Autonomous Local Voice Intelligence Network
 
 <div align="center">
 
@@ -18,11 +18,11 @@
 
 ## 📋 Overview
 
-VoxPrivate is a privacy-centric voice assistant that operates entirely offline using local machine learning models. It eliminates the need for cloud-based services, API keys, and internet connectivity, ensuring 100% data privacy and ownership.
+C.A.L.V.I.N is a privacy-centric, local-first voice assistant. It is being evolved from the original offline command assistant into a conversational companion with explicit permissions, local memory, and a modular local-model runtime.
 
-### Why VoxPrivate?
+### Why C.A.L.V.I.N?
 
-| Feature | VoxPrivate | Cloud Services |
+| Feature | C.A.L.V.I.N | Cloud Services |
 |---------|-----------|----------------|
 | **Data Privacy** | 100% Local | Sent to Servers |
 | **Internet Required** | ❌ No | ✅ Yes |
@@ -92,7 +92,7 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-**4. Run VoxPrivate**
+**4. Run C.A.L.V.I.N**
 ```bash
 python main.py
 ```
@@ -211,7 +211,7 @@ logging:
 ## 📦 Project Structure
 
 ```
-VoxPrivate/
+C.A.L.V.I.N/
 ├── src/
 │   ├── audio/
 │   │   ├── capture.py
@@ -327,4 +327,4 @@ If you find this project helpful, please consider giving it a ⭐ on GitHub!
 
 ## ⚠️ Disclaimer
 
-VoxPrivate is provided as-is for educational and personal use. Ensure you comply with local audio recording laws and regulations.
+C.A.L.V.I.N is provided as-is for educational and personal use. Ensure you comply with local audio recording laws and regulations.

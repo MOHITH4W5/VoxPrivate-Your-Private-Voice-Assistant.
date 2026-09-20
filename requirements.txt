@@ -1,9 +1,15 @@
+# Core runtime
 faster-whisper>=0.10.0
 sounddevice>=0.4.6
 soundfile>=0.12.1
 pyttsx3>=2.90
 PyYAML>=6.0
-pyautogui>=0.9.54
 numpy>=1.23.0
 keyboard>=0.13.5
 Pillow>=9.0.0
+
+# CALVIN foundation: local settings, validation, memory, and audit trail
+pydantic>=2.7,<3
+
+# Optional device-control integrations. Install only when those tools are enabled.
+pyautogui>=0.9.54

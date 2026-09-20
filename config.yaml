@@ -5,12 +5,34 @@ audio:
   silence_threshold: 500      # amplitude threshold for VAD
   silence_duration: 1.5       # seconds of silence to stop recording
 
+identity:
+  name: "C.A.L.V.I.N"
+  expanded_name: "Conversational Autonomous Local Voice Intelligence Network"
+  wake_word: "Calvin"
+
+privacy:
+  offline_mode: true
+  audit_logging: true
+  memory_path: "data/calvin.db"
+
+permissions:
+  # "ask" is the safe default for any action that changes the device or sends data.
+  default: ask
+  allow: [time, date, help, stop]
+  deny: []
+
 model:
-  speech_recognition: "tiny"  # faster-whisper model size: tiny, base, small
+  speech_recognition: "large-v3"  # Whisper model; override for constrained hardware
   language: "en"
   gpu_acceleration: false     # set to true if you have CUDA
+  llm_runtime: "llama.cpp"
+  llm_model: "Qwen3.5-9B-GGUF"
+  embedding_model: "Qwen3-Embedding-0.6B"
 
 tts:
+  engine: "kokoro"
+  voice: "af_jessica"
+  # The legacy pyttsx3 values remain as an offline fallback.
   rate: 175                   # words per minute
   volume: 1.0
   voice_id: 0                 # 0 = first available voice
@@ -18,7 +40,7 @@ tts:
 hotkey: "ctrl+alt+v"          # global hotkey to toggle listening
 
 logging:
-  enabled: false
+  enabled: true
   verbose: false
 
 commands:

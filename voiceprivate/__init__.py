@@ -1,10 +1,10 @@
 """
 voiceprivate/__init__.py
-Public API for VoxPrivate — exposes the VoiceAssistant class as described in README.
+Public API for C.A.L.V.I.N — exposes the CalvinAssistant class.
 
 Usage:
-    from voiceprivate import VoiceAssistant
-    assistant = VoiceAssistant()
+    from calvin import CalvinAssistant
+    assistant = CalvinAssistant()
     assistant.listen()
 """
 
@@ -23,12 +23,14 @@ from src.audio.capture import AudioCapture
 from src.models.speech_recognition import SpeechRecognizer
 from src.models.intent_classifier import classify_intent
 from src.commands.executor import CommandExecutor
+from src.conversation import ConversationEngine
+from src.memory import MemoryManager
 from src.tts.engine import TTSEngine
 
 
-class VoiceAssistant:
+class CalvinAssistant:
     """
-    High-level VoxPrivate voice assistant.
+    High-level C.A.L.V.I.N voice assistant.
 
     Can be used standalone (no GUI) or driven by the GUI app.
     """
@@ -41,6 +43,9 @@ class VoiceAssistant:
         self._tts = TTSEngine(self.config)
         self._capture = AudioCapture(self.config)
         self._executor = CommandExecutor(self.config, self._tts)
+        memory_path = self.config.get("privacy", "memory_path", default="data/calvin.db")
+        self._memory = MemoryManager(memory_path)
+        self._conversation = ConversationEngine(self._memory)
 
         self._listening = False
         self._should_exit = False
@@ -55,8 +60,8 @@ class VoiceAssistant:
 
     def listen(self):
         """Start listening in a blocking loop (use for CLI / headless mode)."""
-        print("[VoxPrivate] Starting in headless mode. Press Ctrl+C to exit.")
-        self._tts.speak("VoxPrivate is ready. How can I help you?")
+        print("[C.A.L.V.I.N] Starting in headless mode. Press Ctrl+C to exit.")
+        self._tts.speak("Calvin is ready. How can I help you?")
         self.start_listening()
         try:
             while not self._should_exit:
@@ -96,6 +101,14 @@ class VoiceAssistant:
         self._should_exit = True
         self._listening = False
         self._capture.stop()
+
+    def remember(self, fact: str, *, importance: float = 0.5):
+        """Save an explicit user-provided fact locally for later retrieval."""
+        return self._memory.remember(fact, importance=importance)
+
+    def forget(self, memory_id: int) -> bool:
+        """Delete a local memory by its identifier."""
+        return self._memory.forget(memory_id)
 
     # ── Internal Loop ─────────────────────────────────────────────────────────
 
@@ -141,15 +154,19 @@ class VoiceAssistant:
                 self.stop()
                 break
 
-            # Execute command & respond
-            response = self._executor.execute(intent, metadata)
+            # Unknown speech is conversational rather than discarded.  A configured
+            # llama.cpp responder can later be supplied to ConversationEngine.
+            if intent == "unknown":
+                response = self._conversation.respond(text).text
+            else:
+                response = self._executor.execute(intent, metadata)
             self._speak(response)
 
             if self.gui:
                 self.gui.set_status("listening")
 
     def _speak(self, text: str):
-        print(f"[VoxPrivate] {text}")
+        print(f"[C.A.L.V.I.N] {text}")
         if self.gui:
             self.gui.set_status("speaking")
             self.gui.log(f"Assistant: {text}")
@@ -158,3 +175,7 @@ class VoiceAssistant:
     def _on_response(self, text: str):
         if self.gui:
             self.gui.set_response(text)
+
+
+# Kept temporarily so existing integrations do not break after the product rename.
+VoiceAssistant = CalvinAssistant

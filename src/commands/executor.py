@@ -11,6 +11,8 @@ import datetime
 from pathlib import Path
 from typing import Optional, Callable
 
+from src.security import PermissionManager
+
 
 SYSTEM = platform.system()  # 'Windows', 'Linux', 'Darwin'
 
@@ -30,10 +32,11 @@ class CommandExecutor:
     def __init__(self, config, tts_engine=None):
         self.config = config
         self.tts = tts_engine
+        self.permissions = PermissionManager(config)
         # Optional callback to notify GUI of actions
         self.action_callback: Optional[Callable[[str], None]] = None
 
-    def execute(self, intent: str, metadata: dict) -> str:
+    def execute(self, intent: str, metadata: dict, *, confirmed: bool = False) -> str:
         """
         Execute the action for a given intent.
         Returns the spoken response string.
@@ -59,14 +62,28 @@ class CommandExecutor:
             "unknown": self._handle_unknown,
         }
         handler = handlers.get(intent, self._handle_unknown)
-        try:
-            response = handler(metadata)
-        except Exception as e:
-            response = f"Sorry, I encountered an error: {str(e)}"
+        if intent not in {"unknown", "help"}:
+            decision = self.permissions.decide(intent, confirmed=confirmed)
+            if not decision.allowed:
+                response = (
+                    f"I need your confirmation before I {intent.replace('_', ' ')}. "
+                    "Please confirm the action in the app."
+                )
+            else:
+                response = self._run_handler(handler, metadata)
+        else:
+            response = self._run_handler(handler, metadata)
 
         if self.action_callback:
             self.action_callback(response)
         return response
+
+    @staticmethod
+    def _run_handler(handler, metadata: dict) -> str:
+        try:
+            return handler(metadata)
+        except Exception as error:
+            return f"Sorry, I encountered an error: {error}"
 
     # ── Individual Handlers ───────────────────────────────────────────────────
 

@@ -1,6 +1,6 @@
 """
 src/gui/app.py
-Beautiful dark-mode tkinter GUI for VoxPrivate.
+Beautiful dark-mode tkinter GUI for C.A.L.V.I.N.
 Features: animated microphone button, live waveform, transcription log, status bar.
 """
 
@@ -132,8 +132,8 @@ class MicButton(tk.Canvas):
             self._command()
 
 
-class VoxPrivateApp:
-    """Main GUI application for VoxPrivate."""
+class CalvinApp:
+    """Main GUI application for C.A.L.V.I.N."""
 
     STATUS_IDLE      = ("⬤  Idle — Press the mic or Ctrl+Alt+V", TEXT_MID)
     STATUS_LISTENING = ("🎙  Listening…", ACCENT_C)
@@ -145,7 +145,7 @@ class VoxPrivateApp:
         self.assistant = assistant
         self._msg_queue: queue.Queue = queue.Queue()
         self._root = tk.Tk()
-        self._root.title("VoxPrivate — Your Private Voice Assistant")
+        self._root.title("C.A.L.V.I.N — Conversational Autonomous Local Voice Intelligence Network")
         self._root.geometry("800x580")
         self._root.minsize(680, 480)
         self._root.configure(bg=BG_DARK)
@@ -163,7 +163,7 @@ class VoxPrivateApp:
         header.pack_propagate(False)
 
         title_font = font.Font(family="Segoe UI", size=16, weight="bold")
-        tk.Label(header, text="🎙 VoxPrivate", font=title_font,
+        tk.Label(header, text="🎙 C.A.L.V.I.N", font=title_font,
                  bg=BG_CARD, fg=ACCENT_C).pack(side=tk.LEFT, padx=18, pady=12)
 
         sub_font = font.Font(family="Segoe UI", size=9)
@@ -265,7 +265,7 @@ class VoxPrivateApp:
         footer.pack(fill=tk.X, side=tk.BOTTOM)
         footer.pack_propagate(False)
         footer_font = font.Font(family="Segoe UI", size=8)
-        tk.Label(footer, text="🔒 No data leaves this device  |  VoxPrivate",
+        tk.Label(footer, text="🔒 No data leaves this device  |  C.A.L.V.I.N",
                  font=footer_font, bg=BG_CARD, fg=TEXT_DIM).pack(side=tk.LEFT, padx=12, pady=6)
 
     # ── Callbacks ─────────────────────────────────────────────────────────────
@@ -334,3 +334,7 @@ class VoxPrivateApp:
 
     def run(self):
         self._root.mainloop()
+
+
+# Compatibility import for downstream users during the product rename.
+VoxPrivateApp = CalvinApp

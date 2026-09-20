@@ -1,6 +1,6 @@
 """
 main.py
-Entry point for VoxPrivate — launches the GUI and starts the assistant.
+Entry point for C.A.L.V.I.N — launches the GUI and starts the assistant.
 """
 
 import sys
@@ -14,7 +14,7 @@ if ROOT not in sys.path:
 
 def main():
     from src.utils.config import Config
-    from voiceprivate import VoiceAssistant
+    from calvin import CalvinAssistant
 
     config = Config.from_file()
 
@@ -23,26 +23,26 @@ def main():
 
     if headless:
         print("Running in headless/CLI mode.")
-        assistant = VoiceAssistant(gui=None)
+        assistant = CalvinAssistant(gui=None)
         assistant.listen()
     else:
         try:
             import tkinter as tk
-            from src.gui.app import VoxPrivateApp
+            from src.gui.app import CalvinApp
         except ImportError:
             print("tkinter not available. Falling back to headless mode.")
-            assistant = VoiceAssistant(gui=None)
+            assistant = CalvinAssistant(gui=None)
             assistant.listen()
             return
 
         # Create GUI first so we can wire callbacks
-        gui = VoxPrivateApp(assistant=None)
-        assistant = VoiceAssistant(gui=gui)
+        gui = CalvinApp(assistant=None)
+        assistant = CalvinAssistant(gui=gui)
         gui.assistant = assistant  # wire assistant back
 
         # Show loading status
         gui.set_status("loading")
-        gui.log("VoxPrivate starting up…")
+        gui.log("C.A.L.V.I.N starting up…")
         gui.log("Click the microphone or press Ctrl+Alt+V to start.")
 
         # Register global hotkey in background
@@ -65,7 +65,7 @@ def main():
         def _announce():
             import time
             time.sleep(1.5)
-            assistant._tts.speak("VoxPrivate is ready. Click the microphone to start.")
+            assistant._tts.speak("Calvin is ready. Click the microphone to start.")
 
         threading.Thread(target=_announce, daemon=True).start()
 
